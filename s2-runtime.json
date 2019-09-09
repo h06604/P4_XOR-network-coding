@@ -1,0 +1,75 @@
+{
+  "target": "bmv2",
+  "p4info": "build/basic.p4.p4info.txt",
+  "bmv2_json": "build/basic.json",
+  "table_entries": [
+    {
+      "table": "MyIngress.ipv4_forward",
+      "default_action": true,
+      "action_name": "MyIngress.drop",
+      "action_params": { }
+    },
+    {
+      "table": "MyIngress.ipv4_forward",
+      "match": {
+        "hdr.ipv4.dstAddr": ["10.0.1.1", 32]
+      },
+      "action_name": "MyIngress.forward",
+      "action_params": {
+        "dstAddr": "08:00:00:00:01:00",
+        "port": 3
+      }
+    },
+    {
+      "table": "MyIngress.ipv4_forward",
+      "match": {
+        "hdr.ipv4.dstAddr": ["10.0.2.2", 32]
+      },
+      "action_name": "MyIngress.forward",
+      "action_params": {
+        "dstAddr": "00:00:00:00:02:02",
+        "port": 2
+      }
+    },
+    {
+      "table": "MyIngress.ipv4_forward",
+      "match": {
+        "hdr.ipv4.dstAddr": ["10.0.1.11", 32]
+      },
+      "action_name": "MyIngress.forward",
+      "action_params": {
+        "dstAddr": "08:00:00:00:02:22",
+        "port": 3
+      }
+    },
+    {
+      "table": "MyIngress.ipv4_forward",
+      "match": {
+        "hdr.ipv4.dstAddr": ["10.0.2.22", 32]
+      },
+      "action_name": "MyIngress.forward",
+      "action_params": {
+        "dstAddr": "00:00:00:00:02:16",
+        "port": 1
+      }
+    },
+    {
+      "table": "MyIngress.s2_match",
+      "match": {
+        "hdr.ethernet.dstAddr": "00:00:00:00:02:02"
+      },
+      "action_name": "MyIngress.s2_buffer",
+      "action_params": {
+      }
+    },
+    {
+      "table": "MyIngress.s2_match",
+      "match": {
+        "hdr.ethernet.dstAddr": "00:00:00:00:02:16"
+      },
+      "action_name": "MyIngress.s2_decoding",
+      "action_params": {
+      }
+    }
+  ]
+}
