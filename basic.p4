@@ -146,11 +146,12 @@ control MyIngress(inout headers hdr,
         
     }
     action forward(macAddr_t dstAddr, egressSpec_t port){
-    
+
         hdr.ethernet.srcAddr = hdr.ethernet.dstAddr;
         hdr.ethernet.dstAddr = dstAddr;
         standard_metadata.egress_spec = port;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
+        
     } 
     action connector(){
         meta.payloadtmp = meta.payloadtmp + (bit<11840>)hdr.payload[0].input;
