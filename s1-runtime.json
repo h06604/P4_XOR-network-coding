@@ -4,13 +4,13 @@
   "bmv2_json": "build/basic.json",
   "table_entries": [
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.network_coding_lpm",
       "default_action": true,
       "action_name": "MyIngress.drop",
       "action_params": { }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.network_coding_lpm",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.1.1", 32]
       },
@@ -21,18 +21,18 @@
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.network_coding_lpm",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.2.2", 32]
       },
-      "action_name": "MyIngress.forward",
+      "action_name": "MyIngress.pass",
       "action_params": {
         "dstAddr": "08:00:00:00:02:00",
         "port": 3
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.network_coding_lpm",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.1.11", 32]
       },
@@ -43,32 +43,14 @@
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.network_coding_lpm",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.2.22", 32]
       },
-      "action_name": "MyIngress.forward",
+      "action_name": "MyIngress.encoding",
       "action_params": {
         "dstAddr": "08:00:00:00:02:00",
         "port": 3
-      }
-    },
-    {
-      "table": "MyIngress.s1_match",
-      "match": {
-        "hdr.ethernet.srcAddr": "00:00:00:00:01:01"
-      },
-      "action_name": "MyIngress.s1_buffer",
-      "action_params": {
-      }
-    },
-    {
-      "table": "MyIngress.s1_match",
-      "match": {
-        "hdr.ethernet.srcAddr": "00:00:00:00:01:0b"
-      },
-      "action_name": "MyIngress.s1_encoding",
-      "action_params": {
       }
     }
   ]
