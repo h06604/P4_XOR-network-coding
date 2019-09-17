@@ -4,7 +4,8 @@
 
 
 const bit<16> TYPE_IPV4 = 0x800;
-
+#define MTU 1500
+#define maximumsize 11824
 
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
@@ -35,7 +36,7 @@ header ipv4_t {
     ip4Addr_t dstAddr;
 }
 header payload_t{
-	bit<192>	input;
+	bit<maximumsize>	input;
 }
 
 struct metadata {
@@ -101,43 +102,45 @@ control MyIngress(inout headers hdr,
     action drop() {
         mark_to_drop(standard_metadata);
     }
-    register<bit<192>>(10000) encoding_payload;
-    bit<192> registertmp = 0x00000000;
-    bit<32> registerindex = 0x00000000;
 
-    action encoding(macAddr_t dstAddr, egressSpec_t port) {
-        encoding_payload.read(registertmp, registerindex);
-        hdr.payload.input = registertmp ^ hdr.payload.input;
-        standard_metadata.egress_spec = port;
-        hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
-    }
-    
-    action decoding(macAddr_t dstAddr, egressSpec_t port) {
-        encoding_payload.read(registertmp, registerindex);
-        hdr.payload.input = registertmp ^ hdr.payload.input;
-        standard_metadata.egress_spec = port;
-        hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
-    }
+    register<bit<maximumsize>>(10) s1_register;
+    register<bit<maximumsize>>(10) s2_register;
+    bit<maximumsize> s1_registertmp = 1;
+    bit<maximumsize> s2_registertmp = 1;
+    bit<32> registerindex = 32w0x00;
 
-    action pass(macAddr_t dstAddr, egressSpec_t port){
-        encoding_payload.write(registerindex, hdr.payload.input);
-        standard_metadata.egress_spec = port;
-        hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
+    action s1_buffer(){
+        s1_register.write(registerindex, hdr.payload.input);
+    }
+    action s1_encoding(){
+        s1_register.read(s1_registertmp, registerindex);
+        hdr.payload.input = s1_registertmp ^ hdr.payload.input;
+        s1_register.write(registerindex, (bit<maximumsize>)0);
+    }
+    action s2_buffer(){
+        s2_register.write(registerindex, hdr.payload.input);
+    }
+    action s2_decoding(){
+        
+        s2_register.read(s2_registertmp, registerindex);
+        hdr.payload.input = s2_registertmp ^ hdr.payload.input;
+        s2_register.write(registerindex, (bit<maximumsize>)0);
+        
     }
     action forward(macAddr_t dstAddr, egressSpec_t port){
+    
+        hdr.ethernet.srcAddr = hdr.ethernet.dstAddr;
+        hdr.ethernet.dstAddr = dstAddr;
         standard_metadata.egress_spec = port;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
-    } 
+    }
 
 
-    table network_coding_lpm {
+    table ipv4_forward {
         key = {
             hdr.ipv4.dstAddr: lpm;
         }
         actions = {
-            pass;
-            encoding;
-            decoding;
             forward;     
             drop;
             NoAction;
@@ -145,10 +148,39 @@ control MyIngress(inout headers hdr,
         size = 1024;
         default_action = drop();
     }
+    table s1_match {
+        key = {
+            hdr.ethernet.srcAddr: exact;
+        }
+        actions = {
+            s1_buffer;
+            s1_encoding;
+            drop;     
+            NoAction;
+        }
+        size = 1024;
+    }
+    table s2_match {
+        key = {
+            hdr.ethernet.dstAddr: exact;
+        }
+        actions = {
+            s2_buffer;
+            s2_decoding; 
+            drop;    
+            NoAction;
+        }
+        size = 1024;
+    }
+
     apply {
         if (hdr.ipv4.isValid()) {
-           network_coding_lpm.apply();
-           
+           s1_match.apply(); 
+           ipv4_forward.apply();
+           s2_match.apply();
+        }
+        if(s1_registertmp == 0 || s2_registertmp == 0){
+            drop();
         }
     }
 }
