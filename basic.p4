@@ -36,7 +36,7 @@ header ipv4_t {
     ip4Addr_t dstAddr;
 }
 header payload_t{
-	bit<maximumsize>	input;
+    bit<maximumsize>    input;
 }
 
 struct metadata {
@@ -46,7 +46,7 @@ struct metadata {
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
-    payload_t	 payload;
+    payload_t    payload;
 }
 
 /*************************************************************************
@@ -76,8 +76,8 @@ parser MyParser(packet_in packet,
     }
 
     state parse_payload{
-    	packet.extract(hdr.payload);
-    	transition accept;
+        packet.extract(hdr.payload);
+        transition accept;
 
     }
 
@@ -207,10 +207,10 @@ control MyEgress(inout headers hdr,
 
 control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
      apply {
-	update_checksum(
-	    hdr.ipv4.isValid(),
+    update_checksum(
+        hdr.ipv4.isValid(),
             { hdr.ipv4.version,
-	      hdr.ipv4.ihl,
+          hdr.ipv4.ihl,
               hdr.ipv4.diffserv,
               hdr.ipv4.totalLen,
               hdr.ipv4.identification,
