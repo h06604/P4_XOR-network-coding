@@ -5,7 +5,7 @@
 
 const bit<16> TYPE_IPV4 = 0x800;
 #define MTU 1500
-#define maximumsize 11824
+#define maximumsize 11840
 
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
@@ -39,13 +39,26 @@ header payload_t{
     bit<maximumsize>    input;
 }
 
+header payload_SYNACK{
+    bit<320>    input;
+}
+
+header payload_ACK{
+    bit<256>    input;
+}
+
 struct metadata {
-    /* empty */
+    bit<32> packet_length;
+    bit<maximumsize> payloadtmp;
+    bit<32> encodingnumber;/****s1 register2 index0****/
+    bit<32> encodingpointer;/****s1 register2 index1****/
 }
 
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
+    payload_SYNACK  SYNACK;
+    payload_ACK  ACK;
     payload_t    payload;
 }
 
@@ -59,11 +72,13 @@ parser MyParser(packet_in packet,
                 inout standard_metadata_t standard_metadata) {
 
     state start {
+        meta.packet_length = standard_metadata.packet_length;
         transition parse_ethernet;
     }
 
     state parse_ethernet {
         packet.extract(hdr.ethernet);
+        meta.packet_length = meta.packet_length - 14;
         transition select(hdr.ethernet.etherType) {
             TYPE_IPV4: parse_ipv4;
             default: accept;
@@ -72,7 +87,23 @@ parser MyParser(packet_in packet,
 
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
-        transition parse_payload;
+        meta.packet_length = meta.packet_length - 20;
+        transition select(meta.packet_length) {
+            40 : parse_SYNACK;
+            32 : parse_ACK;
+            1480 : parse_payload;          
+            default : accept; 
+        }
+    }
+
+    state parse_SYNACK{
+        packet.extract(hdr.SYNACK);
+        transition accept;
+    }
+
+    state parse_ACK{
+        packet.extract(hdr.ACK);
+        transition accept;
     }
 
     state parse_payload{
@@ -103,38 +134,108 @@ control MyIngress(inout headers hdr,
         mark_to_drop(standard_metadata);
     }
 
-    register<bit<maximumsize>>(10) s1_register;
-    register<bit<maximumsize>>(10) s2_register;
+    register<bit<maximumsize>>(1000) s1_register;
+    register<bit<32>>(2) s1_pointer;
+
+    register<bit<maximumsize>>(1000) s2_register;
+    register<bit<32>>(2) s2_pointer;   
+
     bit<maximumsize> s1_registertmp = 1;
     bit<maximumsize> s2_registertmp = 1;
     bit<32> registerindex = 32w0x00;
 
     action s1_buffer(){
-        s1_register.write(registerindex, hdr.payload.input);
+        s1_pointer.read(meta.encodingnumber, 0);
+        s1_pointer.read(meta.encodingpointer, 1);
+
+        if(meta.encodingnumber == 1000){
+            meta.encodingnumber = 0;
+        }
+        s1_register.write(meta.encodingnumber, meta.payloadtmp);
+        meta.encodingnumber = meta.encodingnumber + 1;
+        s1_pointer.write(0,meta.encodingnumber);
+        s1_pointer.write(1,meta.encodingpointer);
     }
+
     action s1_encoding(){
-        s1_register.read(s1_registertmp, registerindex);
-        hdr.payload.input = s1_registertmp ^ hdr.payload.input;
-        s1_register.write(registerindex, (bit<maximumsize>)0);
+        s1_pointer.read(meta.encodingnumber, 0);
+        s1_pointer.read(meta.encodingpointer, 1);
+
+        s1_register.read(s1_registertmp, meta.encodingpointer);
+        /*s1_register.write(meta.encodingpointer, 0); clear*/
+
+        meta.payloadtmp = s1_registertmp ^ meta.payloadtmp;
+        meta.encodingpointer = meta.encodingpointer + 1;
+
+        if(meta.encodingpointer == 1000){
+            meta.encodingpointer = 0;
+        }
+
+        s1_pointer.write(0,meta.encodingnumber);
+        s1_pointer.write(1,meta.encodingpointer);
     }
+
     action s2_buffer(){
-        s2_register.write(registerindex, hdr.payload.input);
+        s2_pointer.read(meta.encodingnumber, 0);
+        s2_pointer.read(meta.encodingpointer, 1);
+
+        if(meta.encodingnumber == 1000){
+            meta.encodingnumber = 0;
+        }
+        s2_register.write(meta.encodingnumber, meta.payloadtmp);
+        meta.encodingnumber = meta.encodingnumber + 1;
+        s2_pointer.write(0,meta.encodingnumber);
+        s2_pointer.write(1,meta.encodingpointer);
     }
+
     action s2_decoding(){
+        s2_pointer.read(meta.encodingnumber, 0);
+        s2_pointer.read(meta.encodingpointer, 1);
+
+        s2_register.read(s2_registertmp, meta.encodingpointer);
+        /*s2_register.write(meta.encodingpointer, 0); clear*/
         
-        s2_register.read(s2_registertmp, registerindex);
-        hdr.payload.input = s2_registertmp ^ hdr.payload.input;
-        s2_register.write(registerindex, (bit<maximumsize>)0);
+        meta.payloadtmp = s2_registertmp ^ meta.payloadtmp;
+        meta.encodingpointer = meta.encodingpointer + 1;
         
+        if(meta.encodingpointer == 1000){
+            meta.encodingpointer = 0;
+        }
+
+        s2_pointer.write(0,meta.encodingnumber);
+        s2_pointer.write(1,meta.encodingpointer);
     }
+
     action forward(macAddr_t dstAddr, egressSpec_t port){
-    
         hdr.ethernet.srcAddr = hdr.ethernet.dstAddr;
         hdr.ethernet.dstAddr = dstAddr;
         standard_metadata.egress_spec = port;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
     }
 
+    action conversion(){
+        if(hdr.SYNACK.isValid()){
+            meta.payloadtmp = (bit<maximumsize>)hdr.SYNACK.input;
+        }
+        else if(hdr.ACK.isValid()){
+            meta.payloadtmp = (bit<maximumsize>)hdr.ACK.input;
+        }
+        else if(hdr.payload.isValid()){
+            meta.payloadtmp = (bit<maximumsize>)hdr.payload.input;
+        }
+    }
+
+    action deconversion(){
+        if(hdr.SYNACK.isValid()){
+            hdr.SYNACK.input = meta.payloadtmp[319:0];
+        }
+        else if(hdr.ACK.isValid()){
+            hdr.ACK.input = meta.payloadtmp[255:0];
+        }
+        else if(hdr.payload.isValid()){
+            hdr.payload.input = meta.payloadtmp;
+        }
+    }
 
     table ipv4_forward {
         key = {
@@ -175,13 +276,15 @@ control MyIngress(inout headers hdr,
 
     apply {
         if (hdr.ipv4.isValid()) {
-           s1_match.apply(); 
-           ipv4_forward.apply();
-           s2_match.apply();
+            conversion(); 
+            s1_match.apply(); 
+            ipv4_forward.apply();
+            s2_match.apply();
+            deconversion();
         }
-        if(s1_registertmp == 0 || s2_registertmp == 0){
+        /*if(s1_registertmp == 0 || s2_registertmp == 0){
             drop();
-        }
+        }*/
     }
 }
 
@@ -233,6 +336,8 @@ control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
+        packet.emit(hdr.SYNACK);
+        packet.emit(hdr.ACK);
         packet.emit(hdr.payload);
     }
 }
