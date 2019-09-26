@@ -146,7 +146,7 @@ control MyIngress(inout headers hdr,
 
     action s1_buffer(){
         s1_pointer.read(meta.encodingnumber, 0);
-        s1_pointer.read(meta.encodingpointer, 1);
+
 
         if(meta.encodingnumber == 10000){
             meta.encodingnumber = 0;
@@ -154,20 +154,22 @@ control MyIngress(inout headers hdr,
         s1_register.write(meta.encodingnumber, meta.payloadtmp);
         meta.encodingnumber = meta.encodingnumber + 1;
         s1_pointer.write(0,meta.encodingnumber);
-        s1_pointer.write(1,meta.encodingpointer);
+
     }
 
     action s1_encoding(){
         /*s1_pointer.read(meta.encodingnumber, 0);*/
         s1_pointer.read(meta.encodingpointer, 1);
-
         s1_register.read(s1_registertmp, meta.encodingpointer);
-        s1_register.write(meta.encodingpointer, 0);/* clear*/
+        /*s1_register.write(meta.encodingpointer, 0); clear
 
         if(s1_registertmp != 0){
             meta.payloadtmp = s1_registertmp ^ meta.payloadtmp;
-            meta.encodingpointer = meta.encodingpointer + 1;            
-        }
+            meta.encodingpointer = meta.encodingpointer + 1;        
+        }*/
+
+        meta.payloadtmp = s1_registertmp ^ meta.payloadtmp;
+        meta.encodingpointer = meta.encodingpointer + 1;
 
         if(meta.encodingpointer == 10000){
             meta.encodingpointer = 0;
@@ -179,7 +181,7 @@ control MyIngress(inout headers hdr,
 
     action s2_buffer(){
         s2_pointer.read(meta.encodingnumber, 0);
-        s2_pointer.read(meta.encodingpointer, 1);
+
 
         if(meta.encodingnumber == 10000){
             meta.encodingnumber = 0;
@@ -187,20 +189,22 @@ control MyIngress(inout headers hdr,
         s2_register.write(meta.encodingnumber, meta.payloadtmp);
         meta.encodingnumber = meta.encodingnumber + 1;
         s2_pointer.write(0,meta.encodingnumber);
-        s2_pointer.write(1,meta.encodingpointer);
+
     }
 
     action s2_decoding(){
         /*s2_pointer.read(meta.encodingnumber, 0);*/
         s2_pointer.read(meta.encodingpointer, 1);
-
         s2_register.read(s2_registertmp, meta.encodingpointer);
-        s2_register.write(meta.encodingpointer, 0); /*clear*/
+        /*s2_register.write(meta.encodingpointer, 0); clear
         
         if(s2_registertmp != 0){
             meta.payloadtmp = s2_registertmp ^ meta.payloadtmp;
             meta.encodingpointer = meta.encodingpointer + 1;            
-        }
+        }*/
+
+        meta.payloadtmp = s2_registertmp ^ meta.payloadtmp;
+        meta.encodingpointer = meta.encodingpointer + 1;  
         
         if(meta.encodingpointer == 10000){
             meta.encodingpointer = 0;
@@ -290,9 +294,9 @@ control MyIngress(inout headers hdr,
                 deconversion();            
             }            
         }
-        if(s1_registertmp == 0 || s2_registertmp == 0){
+        /*if(s1_registertmp == 0 || s2_registertmp == 0){
             drop();
-        }
+        }*/
     }
 }
 
