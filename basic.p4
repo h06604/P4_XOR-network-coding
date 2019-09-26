@@ -134,10 +134,10 @@ control MyIngress(inout headers hdr,
         mark_to_drop(standard_metadata);
     }
 
-    register<bit<maximumsize>>(1000) s1_register;
+    register<bit<maximumsize>>(10000) s1_register;
     register<bit<32>>(2) s1_pointer;
 
-    register<bit<maximumsize>>(1000) s2_register;
+    register<bit<maximumsize>>(10000) s2_register;
     register<bit<32>>(2) s2_pointer;   
 
     bit<maximumsize> s1_registertmp = 1;
@@ -148,7 +148,7 @@ control MyIngress(inout headers hdr,
         s1_pointer.read(meta.encodingnumber, 0);
         s1_pointer.read(meta.encodingpointer, 1);
 
-        if(meta.encodingnumber == 1000){
+        if(meta.encodingnumber == 10000){
             meta.encodingnumber = 0;
         }
         s1_register.write(meta.encodingnumber, meta.payloadtmp);
@@ -158,20 +158,22 @@ control MyIngress(inout headers hdr,
     }
 
     action s1_encoding(){
-        s1_pointer.read(meta.encodingnumber, 0);
+        /*s1_pointer.read(meta.encodingnumber, 0);*/
         s1_pointer.read(meta.encodingpointer, 1);
 
         s1_register.read(s1_registertmp, meta.encodingpointer);
-        /*s1_register.write(meta.encodingpointer, 0); clear*/
+        s1_register.write(meta.encodingpointer, 0);/* clear*/
 
-        meta.payloadtmp = s1_registertmp ^ meta.payloadtmp;
-        meta.encodingpointer = meta.encodingpointer + 1;
+        if(s1_registertmp != 0){
+            meta.payloadtmp = s1_registertmp ^ meta.payloadtmp;
+            meta.encodingpointer = meta.encodingpointer + 1;            
+        }
 
-        if(meta.encodingpointer == 1000){
+        if(meta.encodingpointer == 10000){
             meta.encodingpointer = 0;
         }
 
-        s1_pointer.write(0,meta.encodingnumber);
+        /*s1_pointer.write(0,meta.encodingnumber);*/
         s1_pointer.write(1,meta.encodingpointer);
     }
 
@@ -179,7 +181,7 @@ control MyIngress(inout headers hdr,
         s2_pointer.read(meta.encodingnumber, 0);
         s2_pointer.read(meta.encodingpointer, 1);
 
-        if(meta.encodingnumber == 1000){
+        if(meta.encodingnumber == 10000){
             meta.encodingnumber = 0;
         }
         s2_register.write(meta.encodingnumber, meta.payloadtmp);
@@ -189,20 +191,22 @@ control MyIngress(inout headers hdr,
     }
 
     action s2_decoding(){
-        s2_pointer.read(meta.encodingnumber, 0);
+        /*s2_pointer.read(meta.encodingnumber, 0);*/
         s2_pointer.read(meta.encodingpointer, 1);
 
         s2_register.read(s2_registertmp, meta.encodingpointer);
-        /*s2_register.write(meta.encodingpointer, 0); clear*/
+        s2_register.write(meta.encodingpointer, 0); /*clear*/
         
-        meta.payloadtmp = s2_registertmp ^ meta.payloadtmp;
-        meta.encodingpointer = meta.encodingpointer + 1;
+        if(s2_registertmp != 0){
+            meta.payloadtmp = s2_registertmp ^ meta.payloadtmp;
+            meta.encodingpointer = meta.encodingpointer + 1;            
+        }
         
-        if(meta.encodingpointer == 1000){
+        if(meta.encodingpointer == 10000){
             meta.encodingpointer = 0;
         }
 
-        s2_pointer.write(0,meta.encodingnumber);
+        /*s2_pointer.write(0,meta.encodingnumber);*/
         s2_pointer.write(1,meta.encodingpointer);
     }
 
@@ -276,15 +280,19 @@ control MyIngress(inout headers hdr,
 
     apply {
         if (hdr.ipv4.isValid()) {
-            conversion(); 
-            s1_match.apply(); 
+            if(hdr.SYNACK.isValid() || hdr.ACK.isValid() || hdr.payload.isValid()){
+                conversion();
+                s1_match.apply(); 
+            }
             ipv4_forward.apply();
-            s2_match.apply();
-            deconversion();
+            if(hdr.SYNACK.isValid() || hdr.ACK.isValid() || hdr.payload.isValid()){
+                s2_match.apply(); 
+                deconversion();            
+            }            
         }
-        /*if(s1_registertmp == 0 || s2_registertmp == 0){
+        if(s1_registertmp == 0 || s2_registertmp == 0){
             drop();
-        }*/
+        }
     }
 }
 
