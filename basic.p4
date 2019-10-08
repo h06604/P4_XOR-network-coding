@@ -156,7 +156,7 @@ control MyIngress(inout headers hdr,
         s1_pointer.write(0,meta.encodingnumber);
         s1_pointer.write(1,meta.encodingpointer);
     }
-
+ 
     action s1_encoding(){
         /*s1_pointer.read(meta.encodingnumber, 0);*/
         s1_pointer.read(meta.encodingpointer, 1);
