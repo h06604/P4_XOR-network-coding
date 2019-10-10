@@ -12,7 +12,7 @@
     {
       "table": "MyIngress.forwarding",
       "match": {
-        "hdr.ipv4.dstAddr": ["10.0.1.1", 32]
+        "hdr.ipv4.dstAddr": ["10.0.1.11", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {
@@ -23,7 +23,7 @@
     {
       "table": "MyIngress.forwarding",
       "match": {
-        "hdr.ipv4.dstAddr": ["10.0.2.2", 32]
+        "hdr.ipv4.dstAddr": ["10.0.2.22", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {

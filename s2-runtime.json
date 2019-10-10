@@ -4,24 +4,24 @@
   "bmv2_json": "build/basic.json",
   "table_entries": [
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "default_action": true,
       "action_name": "MyIngress.drop",
       "action_params": { }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.1.1", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:01:00",
+        "dstAddr": "08:00:00:00:33:33",
         "port": 3
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.2.2", 32]
       },
@@ -32,18 +32,18 @@
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.1.11", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:02:22",
-        "port": 3
+        "dstAddr": "08:00:00:00:55:55",
+        "port": 5
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.2.22", 32]
       },
@@ -54,20 +54,20 @@
       }
     },
     {
-      "table": "MyIngress.s2_match",
+      "table": "MyIngress.processing",
       "match": {
-        "hdr.ethernet.dstAddr": "00:00:00:00:02:02"
+        "hdr.ethernet.srcAddr": "00:00:00:00:33:33"
       },
-      "action_name": "MyIngress.s2_buffer",
+      "action_name": "MyIngress.buffer",
       "action_params": {
       }
     },
     {
-      "table": "MyIngress.s2_match",
+      "table": "MyIngress.processing",
       "match": {
-        "hdr.ethernet.dstAddr": "00:00:00:00:02:16"
+        "hdr.ethernet.srcAddr": "00:00:00:00:55:55"
       },
-      "action_name": "MyIngress.s2_decoding",
+      "action_name": "MyIngress.decoding",
       "action_params": {
       }
     }
