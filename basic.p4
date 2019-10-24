@@ -5,7 +5,7 @@
 
 const bit<16> TYPE_IPV4 = 0x800;
 #define MTU 1500
-#define maximumsize 11824
+#define maximumsize 11840
 #define PKT_INSTANCE_TYPE_NORMAL 0
 #define PKT_INSTANCE_TYPE_RESUBMIT 6
 /*************************************************************************
@@ -104,9 +104,9 @@ parser MyParser(packet_in packet,
         packet.extract(hdr.ipv4);
         meta.packet_length = meta.packet_length - 20;
         transition select(meta.packet_length) {
-            40 : parse_SYNACK;
-            32 : parse_ACK;
-            1478 : parse_payload;          
+  /*        40 : parse_SYNACK;
+            32 : parse_ACK;     */
+            1480 : parse_payload;          
             default : accept; 
         }
     }

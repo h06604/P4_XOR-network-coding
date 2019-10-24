@@ -16,7 +16,7 @@
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:33:33",
+        "dstAddr": "00:00:00:00:33:33",
         "port": 3
       }
     },
@@ -38,7 +38,7 @@
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:55:55",
+        "dstAddr": "00:00:00:00:55:55",
         "port": 5
       }
     },

@@ -30,6 +30,17 @@
         "dstAddr": "00:00:00:00:22:22",
         "port": 2
       }
+    },
+    {
+      "table": "MyIngress.forwarding",
+      "match": {
+        "hdr.ipv4.dstAddr": ["10.0.1.11", 32]
+      },
+      "action_name": "MyIngress.forward",
+      "action_params": {
+        "dstAddr": "00:00:00:00:11:11",
+        "port": 1
+      }
     }
   ]
 }
