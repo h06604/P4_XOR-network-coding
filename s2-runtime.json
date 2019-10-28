@@ -54,20 +54,29 @@
       }
     },
     {
-      "table": "MyIngress.processing",
+      "table": "MyEgress.processing",
       "match": {
-        "hdr.ethernet.srcAddr": "00:00:00:00:33:33"
+        "hdr.NC.primitive": 1
       },
-      "action_name": "MyIngress.buffer",
+      "action_name": "MyEgress.buffer",
       "action_params": {
       }
     },
     {
-      "table": "MyIngress.processing",
+      "table": "MyEgress.processing",
       "match": {
-        "hdr.ethernet.srcAddr": "00:00:00:00:55:55"
+        "hdr.NC.primitive": 3
       },
-      "action_name": "MyIngress.decoding",
+      "action_name": "MyEgress.decoding",
+      "action_params": {
+      }
+    },
+    {
+      "table": "MyEgress.remove_header",
+      "match": {
+        "hdr.ethernet.srcAddr": "00:00:00:00:22:22"
+      },
+      "action_name": "remove_NC",
       "action_params": {
       }
     }

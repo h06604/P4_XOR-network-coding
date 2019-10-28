@@ -49,34 +49,52 @@
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "00:00:00:00:55:55",
-        "port": 5
+        "dstAddr": "00:00:00:00:44:44",
+        "port": 4
       }
     },
     {
-      "table": "MyIngress.processing",
+      "table": "MyEgress.processing",
       "match": {
-        "hdr.ethernet.srcAddr": "00:00:00:00:01:01"
+        "hdr.NC.primitive": 1
       },
-      "action_name": "MyIngress.buffer",
+      "action_name": "MyEgress.buffer",
       "action_params": {
       }
     },
     {
-      "table": "MyIngress.processing",
+      "table": "MyEgress.processing",
       "match": {
-        "hdr.ethernet.srcAddr": "00:00:00:00:01:0b"
+        "hdr.NC.primitive": 2
       },
-      "action_name": "MyIngress.cloning",
+      "action_name": "MyEgress.cloning",
       "action_params": {
       }
     },
     {
-      "table": "MyIngress.processing_redundancy",
+      "table": "MyEgress.processing_redundancy",
       "match": {
         "meta.status": 1
       },
-      "action_name": "MyIngress.encoding",
+      "action_name": "MyEgress.encoding",
+      "action_params": {
+      }
+    },
+    {
+      "table": "MyEgress.add_header",
+      "match": {
+        "hdr.ipv4.srcAddr": ["10.0.1.1", 32]
+      },
+      "action_name": "buffer_prim",
+      "action_params": {
+      }
+    },
+    {
+      "table": "MyEgress.add_header",
+      "match": {
+        "hdr.ipv4.srcAddr": ["10.0.1.11", 32]
+      },
+      "action_name": "encoding_prim",
       "action_params": {
       }
     }
