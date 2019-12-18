@@ -4,70 +4,79 @@
   "bmv2_json": "build/basic.json",
   "table_entries": [
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "default_action": true,
       "action_name": "MyIngress.drop",
       "action_params": { }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.1.1", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:01:01",
+        "dstAddr": "00:00:00:00:01:01",
         "port": 2
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.2.2", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:02:00",
+        "dstAddr": "00:00:00:00:33:33",
         "port": 3
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.1.11", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:02:16",
+        "dstAddr": "00:00:00:00:01:0b",
         "port": 1
       }
     },
     {
-      "table": "MyIngress.ipv4_forward",
+      "table": "MyIngress.forwarding",
       "match": {
         "hdr.ipv4.dstAddr": ["10.0.2.22", 32]
       },
       "action_name": "MyIngress.forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:02:00",
-        "port": 3
+        "dstAddr": "00:00:00:00:55:55",
+        "port": 5
       }
     },
     {
-      "table": "MyIngress.s1_match",
+      "table": "MyIngress.processing",
       "match": {
         "hdr.ethernet.srcAddr": "00:00:00:00:01:01"
       },
-      "action_name": "MyIngress.s1_buffer",
+      "action_name": "MyIngress.buffer",
       "action_params": {
       }
     },
     {
-      "table": "MyIngress.s1_match",
+      "table": "MyIngress.processing",
       "match": {
         "hdr.ethernet.srcAddr": "00:00:00:00:01:0b"
       },
-      "action_name": "MyIngress.s1_encoding",
+      "action_name": "MyIngress.cloning",
+      "action_params": {
+      }
+    },
+    {
+      "table": "MyIngress.processing_redundancy",
+      "match": {
+        "meta.status": 1
+      },
+      "action_name": "MyIngress.encoding",
       "action_params": {
       }
     }
