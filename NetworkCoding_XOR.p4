@@ -58,7 +58,6 @@ struct headers {
     payload_t    payload;
 }
 
-
 parser MyParser(packet_in packet,
                 out headers hdr,
                 inout metadata meta,
@@ -122,8 +121,6 @@ parser MyParser(packet_in packet,
 control MyVerifyChecksum(inout headers hdr, inout metadata meta) {   
     apply {  }
 }
-
-
 
 control MyIngress(inout headers hdr,
                   inout metadata meta,
@@ -194,7 +191,6 @@ control MyIngress(inout headers hdr,
         /*pointer.write(0,meta.encodingnumber);*/
         pointer.write(1,meta.encodingpointer);
     }
-
 
     action decoding(){
         /*pointer.read(meta.encodingnumber, 0);*/
@@ -287,12 +283,9 @@ control MyIngress(inout headers hdr,
     }
 }
 
-
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
-
-
 
     apply {
          
@@ -319,7 +312,6 @@ control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
     }
 }
 
-
 control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
@@ -329,7 +321,6 @@ control MyDeparser(packet_out packet, in headers hdr) {
         packet.emit(hdr.payload);
     }
 }
-
 
 V1Switch(
 MyParser(),
